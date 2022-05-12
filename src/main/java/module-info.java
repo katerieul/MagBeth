@@ -9,4 +9,6 @@ module magbeth.magbeth {
     opens magbeth.core to javafx.fxml;
     exports magbeth.views;
     opens magbeth.views to javafx.fxml;
+    exports magbeth.core.moves;
+    opens magbeth.core.moves to javafx.fxml;
 }

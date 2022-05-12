@@ -1,85 +1,98 @@
 package magbeth.core;
-import java.util.Arrays;
-import java.util.List;
 
-public class Board {
-    //FEN - what will it be? some kind of dictionary
-    Pieces.Piece[] board = new Pieces.Piece[Constants.BOARDSIZE*Constants.BOARDSIZE];
-    Integer selectedField=null;
-    List<Integer> validMoves;
-    public Board(String FEN) {
-        //TODO: Add exceptions when FEN is not valid
+import java.util.Iterator;
 
-        int i=0, j=0;
-        for(int stringIterator = 0; stringIterator<FEN.length() && i< Constants.BOARDSIZE; stringIterator++) {
-            char currentSymbol = FEN.charAt(stringIterator);
-            if(Character.isAlphabetic(currentSymbol)) {
-                //why is this? So that it is consistent with how Gridpane operates. We can change that later if we want to
-                board[8*j+i]= Pieces.makePiece(PieceCodes.FENcodeToCode(currentSymbol));
-                j++;
-            }
-            else if(Character.isDigit(currentSymbol))
-                j += Integer.valueOf(currentSymbol);
-            else {
-                i++;
-                j = 0;
-            }
-        }
+public class Board implements Iterable<Vec2> {
+    public static final int SIZE = 8;
+    private final Piece[][] pieces = new Piece[SIZE][SIZE];
 
-        //DEBUGGING
-        System.out.println(Arrays.deepToString(board));
+    public Board(Board other) {
+        for (Vec2 tile : this)
+            pieces[tile.row][tile.col] = other.pieceAt(tile);
     }
+
     public Board() {
-        this(Constants.STARTING_POSITION);
+
     }
-    public boolean isEmpty(int x, int y) {
-        return board[getIndex(x, y)]==null;
+
+    public static boolean isValidVec(Vec2 vec) {
+        return 0 <= vec.row && vec.row < Board.SIZE && 0 <= vec.col && vec.col < Board.SIZE;
     }
-    public Pieces.Piece pieceAt(int x, int y) {
-        if(!validIndex(x, y))
-            throw new IllegalArgumentException("Invalid index");
-        /*if(x<0 || x== Constants.BOARDSIZE || y<0 || y== Constants.BOARDSIZE)
-            return null;*/
-        else return board[getIndex(x,y)];
+
+    public static Board basicConfig() {
+        Board board = new Board();
+
+        board.pieces[getMainRow(Piece.Color.BLACK)] = new Piece[]{
+                new Piece(PieceType.ROOK, Piece.Color.BLACK),
+                new Piece(PieceType.KNIGHT, Piece.Color.BLACK),
+                new Piece(PieceType.BISHOP, Piece.Color.BLACK),
+                new Piece(PieceType.QUEEN, Piece.Color.BLACK),
+                new Piece(PieceType.KING, Piece.Color.BLACK),
+                new Piece(PieceType.BISHOP, Piece.Color.BLACK),
+                new Piece(PieceType.KNIGHT, Piece.Color.BLACK),
+                new Piece(PieceType.ROOK, Piece.Color.BLACK),
+        };
+        for (int col = 0; col < SIZE; col++)
+            board.pieces[getPawnRow(Piece.Color.BLACK)][col] = new Piece(PieceType.PAWN, Piece.Color.BLACK);
+
+        board.pieces[getMainRow(Piece.Color.WHITE)] = new Piece[]{
+                new Piece(PieceType.ROOK, Piece.Color.WHITE),
+                new Piece(PieceType.KNIGHT, Piece.Color.WHITE),
+                new Piece(PieceType.BISHOP, Piece.Color.WHITE),
+                new Piece(PieceType.QUEEN, Piece.Color.WHITE),
+                new Piece(PieceType.KING, Piece.Color.WHITE),
+                new Piece(PieceType.BISHOP, Piece.Color.WHITE),
+                new Piece(PieceType.KNIGHT, Piece.Color.WHITE),
+                new Piece(PieceType.ROOK, Piece.Color.WHITE),
+        };
+        for (int col = 0; col < SIZE; col++)
+            board.pieces[getPawnRow(Piece.Color.WHITE)][col] = new Piece(PieceType.PAWN, Piece.Color.WHITE);
+
+        return board;
     }
-    public boolean validIndex(int x, int y) {
-        if(x<0 || y<0 || x>=Constants.BOARDSIZE || y>=Constants.BOARDSIZE)
-            return false;
-        return true;
+
+    public void setPiece(Vec2 tile, Piece piece) {
+        pieces[tile.row][tile.col] = piece;
     }
-    public static int getIndex(int x, int y) {
-        return x*Constants.BOARDSIZE+y;
+
+    public Piece pieceAt(Vec2 tile) {
+        return pieces[tile.row][tile.col];
     }
-    public boolean validMove(int x, int y) {
-        int move=getIndex(x, y);
-        return validMoves.contains(Integer.valueOf(move));
+
+    public void movePeace(Vec2 start, Vec2 end) {
+        setPiece(end, pieceAt(start));
+        setPiece(start, null);
     }
-    public void move(int xTo, int yTo) {
-        if(selectedField==null)
-            throw new IllegalArgumentException("Piece doesn't exist");
-        if(!validIndex(xTo, yTo))
-            throw new IllegalArgumentException("Invalid index");
-        //TODO: do something if captured
-        board[getIndex(xTo,yTo)]=board[selectedField];
-        board[selectedField]=null;
-        selectedField=null;
+
+    public static int getPawnRow(Piece.Color color) {
+        return color == Piece.Color.BLACK ? 1 : (SIZE - 2);
     }
-    boolean validSelect(int x, int y, int playerColor) {
-        if(validIndex(x, y) && !isEmpty(x, y) && pieceAt(x, y).getColor()==playerColor)
-            return true;
-        return false;
+
+    public static int getMainRow(Piece.Color color) {
+        return color == Piece.Color.BLACK ? 0 : (SIZE - 1);
     }
-    List<Integer> select(int x, int y) {
-        selectedField=getIndex(x, y);
-        validMoves=board[selectedField].legalMoves(this, x, y);
-        return validMoves;
+
+    @Override
+    public Iterator<Vec2> iterator() {
+        return new Iterator<>() {
+            int row = 0;
+            int col = 0;
+
+            @Override
+            public boolean hasNext() {
+                return row != SIZE;
+            }
+
+            @Override
+            public Vec2 next() {
+                Vec2 tile = new Vec2(row, col);
+                col++;
+                if (col == SIZE) {
+                    col = 0;
+                    row++;
+                }
+                return tile;
+            }
+        };
     }
-    void deselect() {
-        selectedField=null;
-        validMoves=null;
-    }
-    public boolean selected() {
-        return !(selectedField==null);
-    }
-    //TODO: implement "reset" function (?)
 }
