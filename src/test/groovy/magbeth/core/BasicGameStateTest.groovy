@@ -16,7 +16,7 @@ class BasicGameStateTest extends Specification {
 
         then:
         result.size() == 2
-        result.containsAll([new Move(new Piece(PieceType.PAWN, Piece.Color.WHITE), pawn, new Vec2(5, 0)),
-                            new Move(new Piece(PieceType.PAWN, Piece.Color.WHITE), pawn, new Vec2(4, 0))])
+        result == [new Move(new Piece(PieceType.PAWN, Piece.Color.WHITE), pawn, new Vec2(1, 0)),
+                   new Move(new Piece(PieceType.PAWN, Piece.Color.WHITE), pawn, new Vec2(2, 0))]
     }
 }
