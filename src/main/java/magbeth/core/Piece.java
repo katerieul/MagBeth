@@ -1,9 +1,11 @@
 package magbeth.core;
 
 import javafx.scene.image.Image;
+import lombok.EqualsAndHashCode;
 
 import java.util.Objects;
 
+@EqualsAndHashCode
 public class Piece {
     public enum Color {
         BLACK,

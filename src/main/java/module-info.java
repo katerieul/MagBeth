@@ -1,7 +1,7 @@
 module magbeth.magbeth {
     requires javafx.controls;
     requires javafx.fxml;
-
+    requires lombok;
 
     opens magbeth to javafx.fxml;
     exports magbeth;

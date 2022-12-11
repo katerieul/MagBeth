@@ -1,10 +1,12 @@
 package magbeth.core.moves;
 
+import lombok.EqualsAndHashCode;
 import magbeth.core.Board;
 import magbeth.core.IGameState;
 import magbeth.core.Piece;
 import magbeth.core.Vec2;
 
+@EqualsAndHashCode
 public class Move {
     public Piece piece;
     public Vec2 tile;
@@ -15,6 +17,12 @@ public class Move {
     }
 
     public Move(Vec2 move) {
+        this.move = move;
+    }
+
+    public Move(Piece piece, Vec2 tile, Vec2 move) {
+        this.piece = piece;
+        this.tile = tile;
         this.move = move;
     }
 
@@ -40,6 +48,6 @@ public class Move {
 
     @Override
     public String toString() {
-        return piece + " " + tile + " " + getFinalTile();
+        return piece + " " + tile + " " + move + " finalTile: " +  getFinalTile();
     }
 }
